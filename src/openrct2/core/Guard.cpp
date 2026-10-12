@@ -34,6 +34,7 @@
 #include "StringBuilder.h"
 
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
 #include <sstream>
 
@@ -104,6 +105,12 @@ namespace OpenRCT2::Guard
             Console::Error::WriteLine(formattedMessage.c_str());
             _lastAssertMessage = std::make_optional(formattedMessage);
         }
+
+        // Flush before the break: the process dies at debug_break() without unwinding, so a
+        // buffered assertion message (piped or redirected output) is otherwise lost entirely -
+        // which is why these crashes have been reported with no diagnostic at all.
+        std::fflush(stdout);
+        std::fflush(stderr);
 
 #if DEBUG > 0
         Debug::Break();
